@@ -10589,18 +10589,7 @@ nav.navbar .sub-menu li a:hover { color: #C2006B !important; background-color: r
 }
 /* === NAVBAR STYLE OVERRIDES END === */
 
-/* === BUTTON TEXT OVERRIDES START === */
-.btn-secondary,
-.btn--secondary,
-[class*="btn-secondary"],
-[class*="btn--secondary"] { color: #333333 !important; }
-.btn-accent,
-.btn--accent,
-[class*="btn-accent"],
-[class*="btn--accent"] { color: #333333 !important; }
-.navbar .nav-cta-btn,
-.nav-cta-btn { color: #FFFFFF !important; }
-/* === BUTTON TEXT OVERRIDES END === */
+
 
 /* ═══════════════════════════════════════════════════════════
    V2 REGENERATED SECTION CSS (בית-hero)
@@ -10814,8 +10803,8 @@ nav.navbar .sub-menu li a:hover { color: #C2006B !important; background-color: r
 }
 
 .index-hero-section .btn-hero-primary:hover {
-  background: #a5005a;
-  border-color: #a5005a;
+  background: #C2006B;
+  border-color: #C2006B;
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(194, 0, 107, 0.48);
 }
@@ -10986,7 +10975,7 @@ nav.navbar .sub-menu li a:hover { color: #C2006B !important; background-color: r
   position: absolute;
   bottom: 24px;
   inset-inline-start: 24px;
-  background: #fff;
+  background: #FFF5FA;
   border-radius: 999px;
   padding: 10px 20px 10px 16px;
   display: flex;
@@ -11126,8 +11115,8 @@ nav.navbar .sub-menu li a:hover { color: #C2006B !important; background-color: r
 }
 
 .index-cta-section .index-cta-btn-primary:hover {
-  background: #a0005a;
-  border-color: #a0005a;
+  background: #C2006B;
+  border-color: #C2006B;
   box-shadow: 0 8px 28px rgba(194,0,107,0.36);
   transform: translateY(-2px);
 }
@@ -11204,6 +11193,55 @@ nav.navbar .sub-menu li a:hover { color: #C2006B !important; background-color: r
     display: none;
   }
 }
+
+/* Privacy consent checkbox — uses !important to override site form styles */
+.privacy-consent {
+  margin: 16px 0 !important;
+  font-size: 0.875rem !important;
+}
+.privacy-consent-label {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  line-height: 1.4 !important;
+  flex-direction: row !important;
+  color: inherit !important;
+}
+.privacy-consent-checkbox {
+  margin-top: 3px !important;
+  flex-shrink: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  cursor: pointer !important;
+  accent-color: currentColor;
+}
+.privacy-consent span {
+  flex: 1;
+  color: inherit !important;
+}
+.privacy-consent a {
+  color: inherit !important;
+  text-decoration: underline !important;
+  font-weight: 600;
+}
+.privacy-consent a:hover {
+  opacity: 0.75;
+}
+/* === BUTTON TEXT OVERRIDES START === */
+.btn-secondary,
+.btn--secondary,
+[class*="btn-secondary"],
+[class*="btn--secondary"] { color: #333333 !important; }
+.btn-accent,
+.btn--accent,
+[class*="btn-accent"],
+[class*="btn--accent"] { color: #333333 !important; }
+.navbar .nav-cta-btn,
+.nav-cta-btn { color: #FFFFFF !important; }
+/* === BUTTON TEXT OVERRIDES END === */
+
 
 /* ========== RTL MOBILE NAVBAR FIX (zappy-rtl-mobile-fix) ========== */
 /* High-specificity rules to ensure RTL positioning wins over any [lang="en"] conflicts */
