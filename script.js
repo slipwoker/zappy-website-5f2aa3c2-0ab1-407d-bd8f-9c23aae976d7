@@ -334,6 +334,480 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 ;
+
+
+/* Cookie Consent */
+
+// Helper function to check cookie consent
+function hasConsentFor(category) {
+  if (typeof window.CookieConsent === 'undefined') {
+    return false; // Default to no consent if cookie consent not loaded
+  }
+  
+  return window.CookieConsent.validConsent(category);
+}
+
+// Helper function to execute code only with consent
+function withConsent(category, callback) {
+  if (hasConsentFor(category)) {
+    callback();
+  } else {
+    console.log(`[WARNING] Skipping ${category} code - no user consent`);
+  }
+}
+
+// Cookie Consent Initialization
+
+(function() {
+  'use strict';
+  
+  let initAttempts = 0;
+  const maxAttempts = 50; // 5 seconds max wait
+  
+  // Wait for DOM and vanilla-cookieconsent to be ready
+  function initCookieConsent() {
+    initAttempts++;
+    
+    
+    if (typeof window.CookieConsent === 'undefined') {
+      if (initAttempts < maxAttempts) {
+        setTimeout(initCookieConsent, 100);
+      } else {
+      }
+      return;
+    }
+
+    const cc = window.CookieConsent;
+    
+    
+    // Initialize cookie consent
+    try {
+      cc.run({
+  "autoShow": true,
+  "mode": "opt-in",
+  "revision": 0,
+  "categories": {
+    "necessary": {
+      "enabled": true,
+      "readOnly": true
+    },
+    "analytics": {
+      "enabled": false,
+      "readOnly": false,
+      "autoClear": {
+        "cookies": [
+          {
+            "name": "_ga"
+          },
+          {
+            "name": "_ga_*"
+          },
+          {
+            "name": "_gid"
+          },
+          {
+            "name": "_gat"
+          }
+        ]
+      }
+    },
+    "marketing": {
+      "enabled": false,
+      "readOnly": false,
+      "autoClear": {
+        "cookies": [
+          {
+            "name": "_fbp"
+          },
+          {
+            "name": "_fbc"
+          },
+          {
+            "name": "fr"
+          }
+        ]
+      }
+    }
+  },
+  "language": {
+    "default": "he",
+    "translations": {
+      "he": {
+        "consentModal": {
+          "title": "אנחנו משתמשים בעוגיות 🍪",
+          "description": "חורזים חרוזים משתמש בעוגיות כדי לשפר את החוויה שלך, לנתח שימוש באתר ולסייע במאמצי השיווק שלנו.",
+          "acceptAllBtn": "אשר הכל",
+          "acceptNecessaryBtn": "רק הכרחי",
+          "showPreferencesBtn": "נהל העדפות",
+          "footer": "<a href=\"#privacy-policy\">מדיניות פרטיות</a> | <a href=\"#terms-conditions\">תנאי שימוש</a>"
+        },
+        "preferencesModal": {
+          "title": "העדפות עוגיות",
+          "acceptAllBtn": "אשר הכל",
+          "acceptNecessaryBtn": "רק הכרחי",
+          "savePreferencesBtn": "שמור העדפות",
+          "closeIconLabel": "סגור",
+          "sections": [
+            {
+              "title": "עוגיות חיוניות",
+              "description": "עוגיות אלה הכרחיות לתפקוד האתר ולא ניתן להשבית אותן.",
+              "linkedCategory": "necessary"
+            },
+            {
+              "title": "עוגיות ניתוח",
+              "description": "עוגיות אלה עוזרות לנו להבין איך המבקרים מתקשרים עם האתר שלנו.",
+              "linkedCategory": "analytics"
+            },
+            {
+              "title": "עוגיות שיווקיות",
+              "description": "עוגיות אלה משמשות להצגת פרסומות מותאמות אישית.",
+              "linkedCategory": "marketing"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "guiOptions": {
+    "consentModal": {
+      "layout": "box",
+      "position": "bottom right",
+      "equalWeightButtons": true,
+      "flipButtons": false
+    },
+    "preferencesModal": {
+      "layout": "box",
+      "equalWeightButtons": true,
+      "flipButtons": false
+    }
+  }
+});
+      
+      // Google Consent Mode v2 integration
+      // Update consent state based on accepted cookie categories
+      function updateGoogleConsentMode() {
+        if (typeof gtag !== 'function') {
+          // Define gtag if not already defined (needed for consent updates)
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function(){dataLayer.push(arguments);};
+        }
+        
+        var analyticsAccepted = cc.acceptedCategory('analytics');
+        var marketingAccepted = cc.acceptedCategory('marketing');
+        
+        gtag('consent', 'update', {
+          'analytics_storage': analyticsAccepted ? 'granted' : 'denied',
+          'ad_storage': marketingAccepted ? 'granted' : 'denied',
+          'ad_user_data': marketingAccepted ? 'granted' : 'denied',
+          'ad_personalization': marketingAccepted ? 'granted' : 'denied'
+        });
+      }
+      
+      // Update consent on initial load (if user previously accepted)
+      updateGoogleConsentMode();
+      
+      // Handle consent changes via onChange callback
+      if (typeof cc.onChange === 'function') {
+        cc.onChange(function(cookie, changed_preferences) {
+          updateGoogleConsentMode();
+        });
+      }
+
+      // Note: Cookie Preferences button removed per marketing guidelines
+      // Footer should be clean and minimal - users can manage cookies via banner
+    } catch (error) {
+    }
+  }
+
+  // Initialize when DOM is ready - multiple approaches for reliability
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCookieConsent);
+    // Backup timeout in case DOMContentLoaded doesn't fire
+    setTimeout(initCookieConsent, 1000);
+  } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    initCookieConsent();
+  } else {
+    // Fallback - try after a short delay
+    setTimeout(initCookieConsent, 500);
+  }
+  
+  // Additional fallback - try after page load
+  if (typeof window !== 'undefined') {
+    if (window.addEventListener) {
+      window.addEventListener('load', initCookieConsent, { once: true });
+    }
+  }
+})();
+
+/* Accessibility Features */
+
+/* Mickidum Accessibility Toolbar Initialization - Zappy Style */
+
+window.onload = function() {
+    
+    try {
+        window.micAccessTool = new MicAccessTool({
+            buttonPosition: 'left', // Position on left side
+            forceLang: 'he-IL', // Force language
+            icon: {
+                position: {
+                    bottom: { size: 50, units: 'px' },
+                    left: { size: 20, units: 'px' },
+                    type: 'fixed'
+                },
+                backgroundColor: 'transparent', // Transparent to allow CSS styling
+                color: 'transparent', // Let CSS handle coloring
+                img: 'accessible',
+                circular: false // Square button for consistent styling
+            },
+            menu: {
+                dimensions: {
+                    width: { size: 300, units: 'px' },
+                    height: { size: 'auto', units: 'px' }
+                }
+            }
+        });
+        
+    } catch (error) {
+    }
+    
+    // Keyboard shortcut handler: ALT+A (Option+A on Mac) to toggle accessibility widget visibility (desktop only)
+    document.addEventListener('keydown', function(event) {
+        // Check if ALT+A is pressed (ALT on Windows/Linux, Option on Mac)
+        var isAltOrOption = event.altKey;
+        // Use event.code for reliable physical key detection (works regardless of Option key character output)
+        var isAKey = event.code === 'KeyA' || event.keyCode === 65 || event.which === 65 || 
+                      (event.key && (event.key.toLowerCase() === 'a' || event.key === 'å' || event.key === 'Å'));
+        
+        if (isAltOrOption && isAKey) {
+            // Only work on desktop (screen width > 768px)
+            if (window.innerWidth > 768) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Toggle visibility class on body
+                var isVisible = document.body.classList.contains('accessibility-widget-visible');
+                
+                if (isVisible) {
+                    // Hide the widget
+                    document.body.classList.remove('accessibility-widget-visible');
+                } else {
+                    // Show the widget
+                    document.body.classList.add('accessibility-widget-visible');
+                    
+                    // After a short delay, click the button to open the menu
+                    setTimeout(function() {
+                        var accessButton = document.getElementById('mic-access-tool-general-button');
+                        if (accessButton) {
+                            accessButton.click();
+                        }
+                    }, 200);
+                }
+            }
+        }
+    }, true);
+};
+
+
+// Zappy Contact Form API Integration (Fallback)
+(function() {
+    if (window.zappyContactFormLoaded) {
+        console.log('📧 Zappy contact form already loaded');
+        return;
+    }
+    window.zappyContactFormLoaded = true;
+
+    function zappyNotify(message, type) {
+        var existing = document.querySelectorAll('.zappy-notification');
+        existing.forEach(function(el) { el.remove(); });
+        var el = document.createElement('div');
+        el.className = 'zappy-notification';
+        var bg = type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1';
+        var fg = type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460';
+        var border = type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb';
+        var icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+        el.style.cssText = 'position:fixed;top:20px;right:20px;max-width:400px;padding:16px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.4;animation:slideInRight .3s ease-out;background:' + bg + ';color:' + fg + ';border:1px solid ' + border;
+        el.innerHTML = '<span style="margin-right:8px">' + icon + '</span>' + message + '<button onclick="this.parentElement.remove()" style="background:none;border:none;font-size:18px;cursor:pointer;float:right;opacity:.7;padding:0 0 0 12px">&times;</button>';
+        if (!document.getElementById('zappy-notify-anim')) {
+            var s = document.createElement('style');
+            s.id = 'zappy-notify-anim';
+            s.textContent = '@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}';
+            document.head.appendChild(s);
+        }
+        document.body.appendChild(el);
+        setTimeout(function() { if (el.parentElement) el.remove(); }, type === 'error' ? 8000 : 5000);
+    }
+
+    function initContactFormIntegration() {
+        console.log('📧 Zappy: Initializing contact form API integration...');
+
+        var contactForm = document.querySelector('.contact-form') || 
+                           document.querySelector('form[action*="contact"]') ||
+                           document.querySelector('form#contact') ||
+                           document.querySelector('form#contactForm') ||
+                           document.getElementById('contactForm') ||
+                           document.querySelector('section.contact form') ||
+                           document.querySelector('section#contact form') ||
+                           document.querySelector('form');
+        
+        if (!contactForm) {
+            console.log('⚠️ Zappy: No contact form found on page');
+            return;
+        }
+        
+        console.log('✅ Zappy: Contact form found:', contactForm.className || contactForm.id || 'unnamed form');
+
+    contactForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Collect form data with multi-value support (checkboxes, multi-selects)
+        var formData = new FormData(this);
+        var data = {};
+        for (var pair of formData.entries()) {
+            if (data[pair[0]] !== undefined) {
+                if (Array.isArray(data[pair[0]])) data[pair[0]].push(pair[1]);
+                else data[pair[0]] = [data[pair[0]], pair[1]];
+            } else {
+                data[pair[0]] = pair[1];
+            }
+        }
+
+        // Smart field mapping
+        var _coreNameFields = ['name','firstName','first_name','fname','lastName','last_name','lname'];
+        var _coreEmailFields = ['email','emailAddress','mail','e-mail'];
+        var _corePhoneFields = ['phone','tel','telephone','mobile','cellphone'];
+        var _coreMsgFields = ['message','msg','comments','comment','description','details','notes','body','text','inquiry'];
+        var _coreSubjectFields = ['subject','topic','regarding','re'];
+        var _allCoreFields = [].concat(_coreNameFields, _coreEmailFields, _corePhoneFields, _coreMsgFields, _coreSubjectFields);
+
+        var resolvedName = (data.name || '').trim()
+            || [data.firstName || data.first_name || data.fname || '', data.lastName || data.last_name || data.lname || ''].filter(Boolean).join(' ').trim()
+            || (data.email || data.emailAddress || data.mail || '').trim()
+            || 'Anonymous';
+        var resolvedEmail = (data.email || data.emailAddress || data.mail || data['e-mail'] || '').trim();
+        var resolvedPhone = data.phone || data.tel || data.telephone || data.mobile || data.cellphone || null;
+        var resolvedSubject = data.subject || data.topic || data.regarding || data.re || 'Contact Form Submission';
+        var resolvedMessage = (data.message || data.msg || data.comments || data.comment || data.description || data.details || data.body || data.text || data.inquiry || '').trim();
+        if (!resolvedMessage) {
+            var extraEntries = Object.entries(data).filter(function(e) { return _allCoreFields.indexOf(e[0]) === -1; });
+            if (extraEntries.length > 0) {
+                resolvedMessage = extraEntries.map(function(e) {
+                    var label = e[0].replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').trim();
+                    var val = Array.isArray(e[1]) ? e[1].join(', ') : e[1];
+                    return label + ': ' + val;
+                }).join('\n');
+            } else {
+                resolvedMessage = 'Form submission from ' + window.location.pathname;
+            }
+        }
+
+        var extraFields = {};
+        for (var k of Object.keys(data)) {
+            if (_allCoreFields.indexOf(k) === -1 && data[k] !== '' && data[k] !== null && data[k] !== undefined) {
+                extraFields[k] = data[k];
+            }
+        }
+
+        // Loading state
+        var submitBtn = this.querySelector('button[type="submit"], input[type="submit"]');
+        var originalText = submitBtn ? (submitBtn.value || submitBtn.textContent) : '';
+        if (submitBtn) {
+            if (submitBtn.tagName === 'INPUT') submitBtn.value = 'Sending...';
+            else submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+        }
+
+        var currentPagePath = window.location.pathname;
+        if (window.ZAPPY_CONFIG && window.ZAPPY_CONFIG.currentPagePath) {
+            currentPagePath = window.ZAPPY_CONFIG.currentPagePath;
+        } else {
+            try {
+                var p = new URLSearchParams(window.location.search).get('page');
+                if (p) currentPagePath = p;
+            } catch (ignored) {}
+        }
+
+        var theForm = this;
+        try {
+            console.log('📧 Zappy: Sending contact form to backend API...');
+            var apiBase = (window.ZAPPY_API_BASE || 'https://api.zappy5.com').replace(/\/$/, '');
+            var payload = {
+                websiteId: '5f2aa3c2-0ab1-407d-bd8f-9c23aae976d7',
+                name: resolvedName,
+                email: resolvedEmail,
+                subject: resolvedSubject,
+                message: resolvedMessage,
+                phone: resolvedPhone,
+                currentPagePath: currentPagePath
+            };
+            if (Object.keys(extraFields).length > 0) {
+                payload.extraFields = extraFields;
+            }
+            var response = await fetch(apiBase + '/api/email/contact-form', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            var result = await response.json();
+            
+            if (result.success) {
+                console.log('✅ Zappy: Contact form data sent successfully to backend');
+
+                // Thank-you page redirect
+                if (result.thankYouPagePath && result.ticketNumber) {
+                    var ticketParam = 'ticket=' + encodeURIComponent(result.ticketNumber);
+                    var isPreview = window.location.pathname.indexOf('/preview') !== -1;
+                    var thankYouUrl;
+                    if (isPreview && window.ZAPPY_CONFIG) {
+                        var wid = window.ZAPPY_CONFIG.websiteId || '5f2aa3c2-0ab1-407d-bd8f-9c23aae976d7';
+                        var pt = window.location.pathname.indexOf('fullscreen') !== -1 ? 'preview-fullscreen' : 'preview';
+                        thankYouUrl = window.location.origin + '/api/website/' + pt + '/' + wid + '?page=' + encodeURIComponent(result.thankYouPagePath) + '&' + ticketParam;
+                        if (window.ZAPPY_CONFIG.authToken) thankYouUrl += '&auth_token=' + encodeURIComponent(window.ZAPPY_CONFIG.authToken);
+                    } else {
+                        thankYouUrl = result.thankYouPagePath + '?' + ticketParam;
+                    }
+                    window.location.href = thankYouUrl;
+                    return;
+                }
+
+                zappyNotify(result.message || 'Thank you for your message! We\'ll get back to you soon.', 'success');
+                theForm.reset();
+            } else {
+                console.log('⚠️ Zappy: Backend returned error:', result.error);
+                zappyNotify(result.error || 'Failed to send message. Please try again.', 'error');
+            }
+        } catch (error) {
+            console.error('❌ Zappy: Failed to send to backend API:', error);
+            zappyNotify('Unable to send message right now. Please try again later.', 'error');
+        } finally {
+            if (submitBtn) {
+                if (submitBtn.tagName === 'INPUT') submitBtn.value = originalText;
+                else submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+        }, true);
+
+        console.log('✅ Zappy: Contact form API integration initialized');
+    } // End of initContactFormIntegration
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initContactFormIntegration);
+    } else {
+        initContactFormIntegration();
+    }
+})();
+
+
+
+/* === NAVBAR SCROLL JS OVERRIDE START === */
+(function(){if(window._zappyNavScrollCleanup){window._zappyNavScrollCleanup();delete window._zappyNavScrollCleanup;}var nb=document.querySelector('nav.navbar,.navbar:not(.zappy-catalog-menu)');var cm=document.querySelector('.zappy-catalog-menu,#zappy-catalog-menu');function clr(){if(nb){nb.style.removeProperty('background');nb.style.removeProperty('background-color');nb.style.removeProperty('backdrop-filter');nb.style.removeProperty('-webkit-backdrop-filter');nb.style.removeProperty('box-shadow');nb.style.removeProperty('--frosted-text');nb.classList.remove('scrolled');}if(cm){cm.style.removeProperty('background');cm.style.removeProperty('background-color');cm.style.removeProperty('backdrop-filter');cm.style.removeProperty('-webkit-backdrop-filter');cm.classList.remove('scrolled');}}clr();window.addEventListener('scroll',clr,{passive:true});window._zappyNavScrollCleanup=function(){window.removeEventListener('scroll',clr);};})();
+/* === NAVBAR SCROLL JS OVERRIDE END === */
+
+
+
+;
 /* ==ZAPPY E-COMMERCE JS START== */
 // E-commerce functionality
 (function() {
@@ -1307,7 +1781,7 @@ function stripHtmlToText(html) {
       var pricePerUnitHtml = getPricePerUnitHtml(p);
       var priceHtml = showPrice ? '<div class="price">' + displayPrice + '</div>' + pricePerUnitHtml : '';
       
-      var favBtnHtml = '<button type="button" class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים" aria-pressed="false"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
+      var favBtnHtml = isCatalogMode ? '' : '<button type="button" class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים" aria-pressed="false"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
       var productHref = '/product/' + (p.slug || p.id);
       var productCardMediaHtml = '<div class="product-card-media"><a href="' + productHref + '" class="product-card-image-link">' + imageHtml + '</a>' + tagsHtml + favBtnHtml + '</div>';
 
@@ -4667,6 +5141,9 @@ function buildApiUrlWithLang(path) {
 let additionalJsProductLayout = 'standard';
 let additionalJsSettingsFetched = false;
 let additionalJsAllProductsLabel = null;
+let additionalJsProductsMenuLabel = null;
+let additionalJsShowAllProductsSubmenu = true;
+let additionalJsShowStockStatus = true;
 let additionalJsSidebarFiltersConfig = {};
 let additionalJsSortingConfig = {};
 let additionalJsViewToggleEnabled = true;
@@ -4709,6 +5186,7 @@ async function fetchAdditionalJsSettings(force) {
       }
       // Handle custom "Products" nav menu trigger label
       if (data.data.productsMenuLabel) {
+        additionalJsProductsMenuLabel = data.data.productsMenuLabel;
         var productsDropdown = document.querySelector('.zappy-products-dropdown > a');
         if (productsDropdown) {
           // Preserve the dropdown arrow SVG, only replace the text node
@@ -4717,6 +5195,44 @@ async function fetchAdditionalJsSettings(force) {
           productsDropdown.appendChild(document.createTextNode(data.data.productsMenuLabel + ' '));
           if (arrowSvg) productsDropdown.appendChild(arrowSvg);
         }
+        // Update search placeholders to use custom label
+        var isRTLPage = document.documentElement.dir === 'rtl' || document.documentElement.lang === 'he' || document.documentElement.lang === 'ar';
+        var searchPlaceholder = isRTLPage
+          ? ('חיפוש ' + data.data.productsMenuLabel + '...')
+          : ('Search ' + data.data.productsMenuLabel.toLowerCase() + '...');
+        var navSearchInput = document.getElementById('nav-search-input');
+        if (navSearchInput) navSearchInput.placeholder = searchPlaceholder;
+        var mobileSearchInput = document.getElementById('mobile-search-input');
+        if (mobileSearchInput) mobileSearchInput.placeholder = searchPlaceholder;
+        // Update products page title
+        var pageTitle = document.getElementById('products-page-title');
+        if (pageTitle) pageTitle.textContent = data.data.productsMenuLabel;
+      }
+      // Handle show/hide "All Products" submenu item
+      if (data.data.showAllProductsSubmenu === false) {
+        additionalJsShowAllProductsSubmenu = false;
+        // Hide the "All Products" item in nav dropdown
+        var navList = document.getElementById('zappy-nav-category-links');
+        if (navList) {
+          var firstItem = navList.querySelector('li:first-child');
+          if (firstItem) {
+            var firstLink = firstItem.querySelector('a');
+            var href = firstLink ? firstLink.getAttribute('href') : '';
+            if (href === '/products' || href.indexOf('/products') !== -1 || href.indexOf('%2Fproducts') !== -1) {
+              firstItem.style.display = 'none';
+            }
+          }
+        }
+        // Hide the "All Products" link in catalog bar
+        var allProdLink = document.querySelector('.catalog-menu-all');
+        if (allProdLink) allProdLink.style.display = 'none';
+        collapseEmptyProductsDropdown();
+      }
+      // Handle show/hide stock status label
+      if (data.data.showStockStatus === false) {
+        additionalJsShowStockStatus = false;
+        var stockEl = document.getElementById('product-stock-display');
+        if (stockEl) stockEl.style.display = 'none';
       }
       if (data.data.sidebarFiltersConfig) {
         additionalJsSidebarFiltersConfig = data.data.sidebarFiltersConfig;
@@ -4737,6 +5253,19 @@ async function fetchAdditionalJsSettings(force) {
         }
         if (typeof setupFixedHeaders === 'function') {
           setTimeout(setupFixedHeaders, 50);
+        }
+      }
+      // Hide/show featured sections based on store settings
+      var hiddenSections = data.data.hiddenHomeSections || [];
+      var homePageSections = ['featured-products', 'featured-categories'];
+      for (var hi = 0; hi < homePageSections.length; hi++) {
+        var sec = document.getElementById(homePageSections[hi]);
+        if (sec) {
+          if (hiddenSections.indexOf(homePageSections[hi]) !== -1) {
+            sec.style.setProperty('display', 'none', 'important');
+          } else {
+            sec.style.removeProperty('display');
+          }
         }
       }
       // Handle dynamic announcement bar
@@ -5064,7 +5593,7 @@ function renderProductGrid(grid, products, t, isFeaturedSection, viewMode) {
     var pricePerUnitHtml = getPricePerUnitHtml(p);
     var priceHtml = showPrice ? '<div class="price">' + displayPrice + '</div>' + pricePerUnitHtml : '';
     
-    var favBtnHtml = '<button type="button" class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים" aria-pressed="false"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
+    var favBtnHtml = isCatalogMode ? '' : '<button type="button" class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים" aria-pressed="false"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
     var productHref = '/product/' + (p.slug || p.id);
     var productCardMediaHtml = '<div class="product-card-media"><a href="' + productHref + '" class="product-card-image-link">' + imageHtml + '</a>' + tagsHtml + favBtnHtml + '</div>';
 
@@ -5126,7 +5655,10 @@ async function loadCatalogCategories() {
   try {
     var res = await fetch(buildApiUrlWithLang('/api/ecommerce/storefront/categories?websiteId=' + websiteId));
     var data = await res.json();
-    if (!data.success || !data.data?.length) return;
+    if (!data.success || !data.data?.length) {
+      collapseEmptyProductsDropdown();
+      return;
+    }
 
     var allCats = data.data;
     var childrenMap = {};
@@ -5196,6 +5728,40 @@ async function loadCatalogCategories() {
     }
   } catch (e) {
     console.error('Failed to load categories', e);
+  }
+  collapseEmptyProductsDropdown();
+}
+
+// When the nav dropdown has zero visible items (showAllProducts hidden + no categories),
+// convert it from a dropdown into a plain link so it doesn't render as an empty menu.
+function collapseEmptyProductsDropdown() {
+  var dropdown = document.querySelector('.zappy-products-dropdown');
+  var collapsed = document.querySelector('[data-zappy-products-collapsed]');
+  var el = dropdown || collapsed;
+  if (!el) return;
+  var navList = el.querySelector('#zappy-nav-category-links') || document.getElementById('zappy-nav-category-links');
+  if (!navList) return;
+
+  var items = navList.querySelectorAll('li');
+  var hasVisible = false;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].style.display !== 'none') { hasVisible = true; break; }
+  }
+
+  if (!hasVisible && dropdown) {
+    dropdown.classList.remove('menu-item-has-children', 'zappy-products-dropdown');
+    el.setAttribute('data-zappy-products-collapsed', 'true');
+    var arrow = el.querySelector('.dropdown-arrow');
+    if (arrow) arrow.style.display = 'none';
+    var subMenu = el.querySelector('.sub-menu, #zappy-nav-category-links');
+    if (subMenu) subMenu.style.setProperty('display', 'none', 'important');
+  } else if (hasVisible && collapsed) {
+    collapsed.classList.add('menu-item-has-children', 'zappy-products-dropdown');
+    collapsed.removeAttribute('data-zappy-products-collapsed');
+    var arrow2 = collapsed.querySelector('.dropdown-arrow');
+    if (arrow2) arrow2.style.display = '';
+    var subMenu2 = collapsed.querySelector('.sub-menu, #zappy-nav-category-links');
+    if (subMenu2) subMenu2.style.removeProperty('display');
   }
 }
 
@@ -6124,11 +6690,12 @@ function renderProductDetail(container, product, t) {
     variantSelectorHtml = '<div class="product-variants" id="product-variants">' + groupsHtml + '</div>';
   }
   
-  // Build breadcrumb
+  // Build breadcrumb (use custom products label if set via store settings)
+  var productsLabel = (typeof additionalJsProductsMenuLabel === 'string' && additionalJsProductsMenuLabel) ? additionalJsProductsMenuLabel : t.products;
   var breadcrumbHtml = '<nav class="product-breadcrumb">';
   breadcrumbHtml += '<a href="/">' + t.home + '</a>';
   breadcrumbHtml += '<span class="breadcrumb-separator">›</span>';
-  breadcrumbHtml += '<a href="/products">' + t.products + '</a>';
+  breadcrumbHtml += '<a href="/products">' + productsLabel + '</a>';
   if (product.category_name) {
     breadcrumbHtml += '<span class="breadcrumb-separator">›</span>';
     if (product.category_id) {
@@ -6196,10 +6763,10 @@ function renderProductDetail(container, product, t) {
         <div class="product-title-row">
           <h1>${product.name}</h1>
           <div class="product-icon-actions">
-            <button class="icon-btn favorite-btn" id="favorite-btn" onclick="toggleFavorite('${product.id}')" title="${t.saveToFavorites}">
+            ${!isCatalogMode ? `<button class="icon-btn favorite-btn" id="favorite-btn" onclick="toggleFavorite('${product.id}')" title="${t.saveToFavorites}">
               <svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><g clip-path="url(#clip0_fav)"><path d="M14.7917 0.833496C12.705 0.833496 10.8108 2.376 10 4.46183C9.18917 2.37516 7.295 0.833496 5.20833 0.833496C2.33667 0.833496 0 3.17016 0 6.04183C0 11.6752 8.12833 17.7668 9.7575 18.9302L10 19.1035L10.2425 18.9302C11.8725 17.7668 20 11.6743 20 6.04183C20 3.17016 17.6633 0.833496 14.7917 0.833496ZM10 18.0777C5.71583 14.9652 0.833333 10.0185 0.833333 6.04183C0.833333 3.62933 2.79583 1.66683 5.20833 1.66683C7.49833 1.66683 9.58333 4.05016 9.58333 6.66683H10.4167C10.4167 4.05016 12.5017 1.66683 14.7917 1.66683C17.2042 1.66683 19.1667 3.62933 19.1667 6.04183C19.1667 10.0185 14.2842 14.9652 10 18.0777Z" fill="currentColor"/></g><defs><clipPath id="clip0_fav"><rect width="20" height="20" fill="white"/></clipPath></defs></svg>
               <svg class="heart-filled" style="display:none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><g clip-path="url(#clip1_fav)"><path d="M14.7917 0.833496C12.705 0.833496 10.8108 2.376 10 4.46183C9.18917 2.37516 7.295 0.833496 5.20833 0.833496C2.33667 0.833496 0 3.17016 0 6.04183C0 11.6752 8.12833 17.7668 9.7575 18.9302L10 19.1035L10.2425 18.9302C11.8725 17.7668 20 11.6743 20 6.04183C20 3.17016 17.6633 0.833496 14.7917 0.833496Z" fill="#e74c3c"/></g><defs><clipPath id="clip1_fav"><rect width="20" height="20" fill="white"/></clipPath></defs></svg>
-            </button>
+            </button>` : ''}
             <button class="icon-btn share-btn" onclick="shareProduct()" title="${t.shareProduct}">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15.625 12.25C14.383 12.25 13.3075 12.9318 12.721 13.9338L7.348 11.563C7.59625 11.0935 7.75 10.567 7.75 9.99925C7.75 9.4315 7.59625 8.90575 7.348 8.4355L12.721 6.06475C13.3068 7.06675 14.3822 7.7485 15.625 7.7485C17.4858 7.7485 19 6.23425 19 4.3735C19 2.51275 17.4858 1 15.625 1C13.7642 1 12.25 2.51425 12.25 4.375C12.25 4.72675 12.319 5.05975 12.4195 5.37925L6.91825 7.80625C6.29875 7.08925 5.39425 6.625 4.375 6.625C2.51425 6.625 1 8.13925 1 10C1 11.8608 2.51425 13.375 4.375 13.375C5.395 13.375 6.2995 12.9108 6.91825 12.1938L12.4195 14.6207C12.319 14.9402 12.25 15.2732 12.25 15.625C12.25 17.4858 13.7642 19 15.625 19C17.4858 19 19 17.4858 19 15.625C19 13.7642 17.4858 12.25 15.625 12.25ZM15.625 1.75C17.0725 1.75 18.25 2.9275 18.25 4.375C18.25 5.8225 17.0725 7 15.625 7C14.1775 7 13 5.8225 13 4.375C13 2.9275 14.1775 1.75 15.625 1.75ZM4.375 12.625C2.9275 12.625 1.75 11.4475 1.75 10C1.75 8.5525 2.9275 7.375 4.375 7.375C5.8225 7.375 7 8.5525 7 10C7 11.4475 5.8225 12.625 4.375 12.625ZM15.625 18.25C14.1775 18.25 13 17.0725 13 15.625C13 14.1775 14.1775 13 15.625 13C17.0725 13 18.25 14.1775 18.25 15.625C18.25 17.0725 17.0725 18.25 15.625 18.25Z" fill="currentColor"/></svg>
             </button>
@@ -6336,6 +6903,12 @@ function renderProductDetail(container, product, t) {
     </div>
   `;
   
+  // Hide stock status label if disabled in store settings
+  if (!additionalJsShowStockStatus) {
+    var stockEl = document.getElementById('product-stock-display');
+    if (stockEl) stockEl.style.display = 'none';
+  }
+
   // Store product data for add to cart
   window.currentProduct = product;
   window.selectedVariant = null;
@@ -6909,10 +7482,14 @@ function updateVariantUI(variant, product, t, selectedAttributes) {
     // Update stock status
     const variantInStock = variant.stock_status !== 'out_of_stock';
     if (stockDisplay) {
-      stockDisplay.className = 'product-stock ' + (variantInStock ? 'in-stock' : 'out-of-stock');
-      stockDisplay.innerHTML = variantInStock 
-        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
-        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+      if (!additionalJsShowStockStatus) { stockDisplay.style.display = 'none'; }
+      else {
+        stockDisplay.style.display = '';
+        stockDisplay.className = 'product-stock ' + (variantInStock ? 'in-stock' : 'out-of-stock');
+        stockDisplay.innerHTML = variantInStock 
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+      }
     }
     
     // Update SKU if variant has one
@@ -6958,8 +7535,12 @@ function updateVariantUI(variant, product, t, selectedAttributes) {
     if (allGroupsSelected) {
       // All groups selected but no variant matches - treat as out of stock / unavailable
       if (stockDisplay) {
-        stockDisplay.className = 'product-stock out-of-stock';
-        stockDisplay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + (t.outOfStock || 'Out of Stock');
+        if (!additionalJsShowStockStatus) { stockDisplay.style.display = 'none'; }
+        else {
+          stockDisplay.style.display = '';
+          stockDisplay.className = 'product-stock out-of-stock';
+          stockDisplay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + (t.outOfStock || 'Out of Stock');
+        }
       }
       
       if (addToCartBtn) {
@@ -6982,10 +7563,14 @@ function updateVariantUI(variant, product, t, selectedAttributes) {
       // Reset to base product stock
       const baseInStock = product.stock_status !== 'out_of_stock';
       if (stockDisplay) {
-        stockDisplay.className = 'product-stock ' + (baseInStock ? 'in-stock' : 'out-of-stock');
-        stockDisplay.innerHTML = baseInStock 
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+        if (!additionalJsShowStockStatus) { stockDisplay.style.display = 'none'; }
+        else {
+          stockDisplay.style.display = '';
+          stockDisplay.className = 'product-stock ' + (baseInStock ? 'in-stock' : 'out-of-stock');
+          stockDisplay.innerHTML = baseInStock 
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+        }
       }
       
       if (addToCartBtn) {
@@ -7101,477 +7686,6 @@ async function loadRelatedProducts(currentProduct, t) {
   }
 }
 /* ==ZAPPY E-COMMERCE JS END== */
-
-/* Cookie Consent */
-
-// Helper function to check cookie consent
-function hasConsentFor(category) {
-  if (typeof window.CookieConsent === 'undefined') {
-    return false; // Default to no consent if cookie consent not loaded
-  }
-  
-  return window.CookieConsent.validConsent(category);
-}
-
-// Helper function to execute code only with consent
-function withConsent(category, callback) {
-  if (hasConsentFor(category)) {
-    callback();
-  } else {
-    console.log(`[WARNING] Skipping ${category} code - no user consent`);
-  }
-}
-
-// Cookie Consent Initialization
-
-(function() {
-  'use strict';
-  
-  let initAttempts = 0;
-  const maxAttempts = 50; // 5 seconds max wait
-  
-  // Wait for DOM and vanilla-cookieconsent to be ready
-  function initCookieConsent() {
-    initAttempts++;
-    
-    
-    if (typeof window.CookieConsent === 'undefined') {
-      if (initAttempts < maxAttempts) {
-        setTimeout(initCookieConsent, 100);
-      } else {
-      }
-      return;
-    }
-
-    const cc = window.CookieConsent;
-    
-    
-    // Initialize cookie consent
-    try {
-      cc.run({
-  "autoShow": true,
-  "mode": "opt-in",
-  "revision": 0,
-  "categories": {
-    "necessary": {
-      "enabled": true,
-      "readOnly": true
-    },
-    "analytics": {
-      "enabled": false,
-      "readOnly": false,
-      "autoClear": {
-        "cookies": [
-          {
-            "name": "_ga"
-          },
-          {
-            "name": "_ga_*"
-          },
-          {
-            "name": "_gid"
-          },
-          {
-            "name": "_gat"
-          }
-        ]
-      }
-    },
-    "marketing": {
-      "enabled": false,
-      "readOnly": false,
-      "autoClear": {
-        "cookies": [
-          {
-            "name": "_fbp"
-          },
-          {
-            "name": "_fbc"
-          },
-          {
-            "name": "fr"
-          }
-        ]
-      }
-    }
-  },
-  "language": {
-    "default": "he",
-    "translations": {
-      "he": {
-        "consentModal": {
-          "title": "אנחנו משתמשים בעוגיות 🍪",
-          "description": "חורזים חרוזים משתמש בעוגיות כדי לשפר את החוויה שלך, לנתח שימוש באתר ולסייע במאמצי השיווק שלנו.",
-          "acceptAllBtn": "אשר הכל",
-          "acceptNecessaryBtn": "רק הכרחי",
-          "showPreferencesBtn": "נהל העדפות",
-          "footer": "<a href=\"#privacy-policy\">מדיניות פרטיות</a> | <a href=\"#terms-conditions\">תנאי שימוש</a>"
-        },
-        "preferencesModal": {
-          "title": "העדפות עוגיות",
-          "acceptAllBtn": "אשר הכל",
-          "acceptNecessaryBtn": "רק הכרחי",
-          "savePreferencesBtn": "שמור העדפות",
-          "closeIconLabel": "סגור",
-          "sections": [
-            {
-              "title": "עוגיות חיוניות",
-              "description": "עוגיות אלה הכרחיות לתפקוד האתר ולא ניתן להשבית אותן.",
-              "linkedCategory": "necessary"
-            },
-            {
-              "title": "עוגיות ניתוח",
-              "description": "עוגיות אלה עוזרות לנו להבין איך המבקרים מתקשרים עם האתר שלנו.",
-              "linkedCategory": "analytics"
-            },
-            {
-              "title": "עוגיות שיווקיות",
-              "description": "עוגיות אלה משמשות להצגת פרסומות מותאמות אישית.",
-              "linkedCategory": "marketing"
-            }
-          ]
-        }
-      }
-    }
-  },
-  "guiOptions": {
-    "consentModal": {
-      "layout": "box",
-      "position": "bottom right",
-      "equalWeightButtons": true,
-      "flipButtons": false
-    },
-    "preferencesModal": {
-      "layout": "box",
-      "equalWeightButtons": true,
-      "flipButtons": false
-    }
-  }
-});
-      
-      // Google Consent Mode v2 integration
-      // Update consent state based on accepted cookie categories
-      function updateGoogleConsentMode() {
-        if (typeof gtag !== 'function') {
-          // Define gtag if not already defined (needed for consent updates)
-          window.dataLayer = window.dataLayer || [];
-          window.gtag = function(){dataLayer.push(arguments);};
-        }
-        
-        var analyticsAccepted = cc.acceptedCategory('analytics');
-        var marketingAccepted = cc.acceptedCategory('marketing');
-        
-        gtag('consent', 'update', {
-          'analytics_storage': analyticsAccepted ? 'granted' : 'denied',
-          'ad_storage': marketingAccepted ? 'granted' : 'denied',
-          'ad_user_data': marketingAccepted ? 'granted' : 'denied',
-          'ad_personalization': marketingAccepted ? 'granted' : 'denied'
-        });
-      }
-      
-      // Update consent on initial load (if user previously accepted)
-      updateGoogleConsentMode();
-      
-      // Handle consent changes via onChange callback
-      if (typeof cc.onChange === 'function') {
-        cc.onChange(function(cookie, changed_preferences) {
-          updateGoogleConsentMode();
-        });
-      }
-
-      // Note: Cookie Preferences button removed per marketing guidelines
-      // Footer should be clean and minimal - users can manage cookies via banner
-    } catch (error) {
-    }
-  }
-
-  // Initialize when DOM is ready - multiple approaches for reliability
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCookieConsent);
-    // Backup timeout in case DOMContentLoaded doesn't fire
-    setTimeout(initCookieConsent, 1000);
-  } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    initCookieConsent();
-  } else {
-    // Fallback - try after a short delay
-    setTimeout(initCookieConsent, 500);
-  }
-  
-  // Additional fallback - try after page load
-  if (typeof window !== 'undefined') {
-    if (window.addEventListener) {
-      window.addEventListener('load', initCookieConsent, { once: true });
-    }
-  }
-})();
-
-/* Accessibility Features */
-
-/* Mickidum Accessibility Toolbar Initialization - Zappy Style */
-
-window.onload = function() {
-    
-    try {
-        window.micAccessTool = new MicAccessTool({
-            buttonPosition: 'left', // Position on left side
-            forceLang: 'he-IL', // Force language
-            icon: {
-                position: {
-                    bottom: { size: 50, units: 'px' },
-                    left: { size: 20, units: 'px' },
-                    type: 'fixed'
-                },
-                backgroundColor: 'transparent', // Transparent to allow CSS styling
-                color: 'transparent', // Let CSS handle coloring
-                img: 'accessible',
-                circular: false // Square button for consistent styling
-            },
-            menu: {
-                dimensions: {
-                    width: { size: 300, units: 'px' },
-                    height: { size: 'auto', units: 'px' }
-                }
-            }
-        });
-        
-    } catch (error) {
-    }
-    
-    // Keyboard shortcut handler: ALT+A (Option+A on Mac) to toggle accessibility widget visibility (desktop only)
-    document.addEventListener('keydown', function(event) {
-        // Check if ALT+A is pressed (ALT on Windows/Linux, Option on Mac)
-        var isAltOrOption = event.altKey;
-        // Use event.code for reliable physical key detection (works regardless of Option key character output)
-        var isAKey = event.code === 'KeyA' || event.keyCode === 65 || event.which === 65 || 
-                      (event.key && (event.key.toLowerCase() === 'a' || event.key === 'å' || event.key === 'Å'));
-        
-        if (isAltOrOption && isAKey) {
-            // Only work on desktop (screen width > 768px)
-            if (window.innerWidth > 768) {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                // Toggle visibility class on body
-                var isVisible = document.body.classList.contains('accessibility-widget-visible');
-                
-                if (isVisible) {
-                    // Hide the widget
-                    document.body.classList.remove('accessibility-widget-visible');
-                } else {
-                    // Show the widget
-                    document.body.classList.add('accessibility-widget-visible');
-                    
-                    // After a short delay, click the button to open the menu
-                    setTimeout(function() {
-                        var accessButton = document.getElementById('mic-access-tool-general-button');
-                        if (accessButton) {
-                            accessButton.click();
-                        }
-                    }, 200);
-                }
-            }
-        }
-    }, true);
-};
-
-
-// Zappy Contact Form API Integration (Fallback)
-(function() {
-    if (window.zappyContactFormLoaded) {
-        console.log('📧 Zappy contact form already loaded');
-        return;
-    }
-    window.zappyContactFormLoaded = true;
-
-    function zappyNotify(message, type) {
-        var existing = document.querySelectorAll('.zappy-notification');
-        existing.forEach(function(el) { el.remove(); });
-        var el = document.createElement('div');
-        el.className = 'zappy-notification';
-        var bg = type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1';
-        var fg = type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460';
-        var border = type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb';
-        var icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-        el.style.cssText = 'position:fixed;top:20px;right:20px;max-width:400px;padding:16px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.4;animation:slideInRight .3s ease-out;background:' + bg + ';color:' + fg + ';border:1px solid ' + border;
-        el.innerHTML = '<span style="margin-right:8px">' + icon + '</span>' + message + '<button onclick="this.parentElement.remove()" style="background:none;border:none;font-size:18px;cursor:pointer;float:right;opacity:.7;padding:0 0 0 12px">&times;</button>';
-        if (!document.getElementById('zappy-notify-anim')) {
-            var s = document.createElement('style');
-            s.id = 'zappy-notify-anim';
-            s.textContent = '@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}';
-            document.head.appendChild(s);
-        }
-        document.body.appendChild(el);
-        setTimeout(function() { if (el.parentElement) el.remove(); }, type === 'error' ? 8000 : 5000);
-    }
-
-    function initContactFormIntegration() {
-        console.log('📧 Zappy: Initializing contact form API integration...');
-
-        var contactForm = document.querySelector('.contact-form') || 
-                           document.querySelector('form[action*="contact"]') ||
-                           document.querySelector('form#contact') ||
-                           document.querySelector('form#contactForm') ||
-                           document.getElementById('contactForm') ||
-                           document.querySelector('section.contact form') ||
-                           document.querySelector('section#contact form') ||
-                           document.querySelector('form');
-        
-        if (!contactForm) {
-            console.log('⚠️ Zappy: No contact form found on page');
-            return;
-        }
-        
-        console.log('✅ Zappy: Contact form found:', contactForm.className || contactForm.id || 'unnamed form');
-
-    contactForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // Collect form data with multi-value support (checkboxes, multi-selects)
-        var formData = new FormData(this);
-        var data = {};
-        for (var pair of formData.entries()) {
-            if (data[pair[0]] !== undefined) {
-                if (Array.isArray(data[pair[0]])) data[pair[0]].push(pair[1]);
-                else data[pair[0]] = [data[pair[0]], pair[1]];
-            } else {
-                data[pair[0]] = pair[1];
-            }
-        }
-
-        // Smart field mapping
-        var _coreNameFields = ['name','firstName','first_name','fname','lastName','last_name','lname'];
-        var _coreEmailFields = ['email','emailAddress','mail','e-mail'];
-        var _corePhoneFields = ['phone','tel','telephone','mobile','cellphone'];
-        var _coreMsgFields = ['message','msg','comments','comment','description','details','notes','body','text','inquiry'];
-        var _coreSubjectFields = ['subject','topic','regarding','re'];
-        var _allCoreFields = [].concat(_coreNameFields, _coreEmailFields, _corePhoneFields, _coreMsgFields, _coreSubjectFields);
-
-        var resolvedName = (data.name || '').trim()
-            || [data.firstName || data.first_name || data.fname || '', data.lastName || data.last_name || data.lname || ''].filter(Boolean).join(' ').trim()
-            || (data.email || data.emailAddress || data.mail || '').trim()
-            || 'Anonymous';
-        var resolvedEmail = (data.email || data.emailAddress || data.mail || data['e-mail'] || '').trim();
-        var resolvedPhone = data.phone || data.tel || data.telephone || data.mobile || data.cellphone || null;
-        var resolvedSubject = data.subject || data.topic || data.regarding || data.re || 'Contact Form Submission';
-        var resolvedMessage = (data.message || data.msg || data.comments || data.comment || data.description || data.details || data.body || data.text || data.inquiry || '').trim();
-        if (!resolvedMessage) {
-            var extraEntries = Object.entries(data).filter(function(e) { return _allCoreFields.indexOf(e[0]) === -1; });
-            if (extraEntries.length > 0) {
-                resolvedMessage = extraEntries.map(function(e) {
-                    var label = e[0].replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').trim();
-                    var val = Array.isArray(e[1]) ? e[1].join(', ') : e[1];
-                    return label + ': ' + val;
-                }).join('\n');
-            } else {
-                resolvedMessage = 'Form submission from ' + window.location.pathname;
-            }
-        }
-
-        var extraFields = {};
-        for (var k of Object.keys(data)) {
-            if (_allCoreFields.indexOf(k) === -1 && data[k] !== '' && data[k] !== null && data[k] !== undefined) {
-                extraFields[k] = data[k];
-            }
-        }
-
-        // Loading state
-        var submitBtn = this.querySelector('button[type="submit"], input[type="submit"]');
-        var originalText = submitBtn ? (submitBtn.value || submitBtn.textContent) : '';
-        if (submitBtn) {
-            if (submitBtn.tagName === 'INPUT') submitBtn.value = 'Sending...';
-            else submitBtn.textContent = 'Sending...';
-            submitBtn.disabled = true;
-        }
-
-        var currentPagePath = window.location.pathname;
-        if (window.ZAPPY_CONFIG && window.ZAPPY_CONFIG.currentPagePath) {
-            currentPagePath = window.ZAPPY_CONFIG.currentPagePath;
-        } else {
-            try {
-                var p = new URLSearchParams(window.location.search).get('page');
-                if (p) currentPagePath = p;
-            } catch (ignored) {}
-        }
-
-        var theForm = this;
-        try {
-            console.log('📧 Zappy: Sending contact form to backend API...');
-            var apiBase = (window.ZAPPY_API_BASE || 'https://api.zappy5.com').replace(/\/$/, '');
-            var payload = {
-                websiteId: '5f2aa3c2-0ab1-407d-bd8f-9c23aae976d7',
-                name: resolvedName,
-                email: resolvedEmail,
-                subject: resolvedSubject,
-                message: resolvedMessage,
-                phone: resolvedPhone,
-                currentPagePath: currentPagePath
-            };
-            if (Object.keys(extraFields).length > 0) {
-                payload.extraFields = extraFields;
-            }
-            var response = await fetch(apiBase + '/api/email/contact-form', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            var result = await response.json();
-            
-            if (result.success) {
-                console.log('✅ Zappy: Contact form data sent successfully to backend');
-
-                // Thank-you page redirect
-                if (result.thankYouPagePath && result.ticketNumber) {
-                    var ticketParam = 'ticket=' + encodeURIComponent(result.ticketNumber);
-                    var isPreview = window.location.pathname.indexOf('/preview') !== -1;
-                    var thankYouUrl;
-                    if (isPreview && window.ZAPPY_CONFIG) {
-                        var wid = window.ZAPPY_CONFIG.websiteId || '5f2aa3c2-0ab1-407d-bd8f-9c23aae976d7';
-                        var pt = window.location.pathname.indexOf('fullscreen') !== -1 ? 'preview-fullscreen' : 'preview';
-                        thankYouUrl = window.location.origin + '/api/website/' + pt + '/' + wid + '?page=' + encodeURIComponent(result.thankYouPagePath) + '&' + ticketParam;
-                        if (window.ZAPPY_CONFIG.authToken) thankYouUrl += '&auth_token=' + encodeURIComponent(window.ZAPPY_CONFIG.authToken);
-                    } else {
-                        thankYouUrl = result.thankYouPagePath + '?' + ticketParam;
-                    }
-                    window.location.href = thankYouUrl;
-                    return;
-                }
-
-                zappyNotify(result.message || 'Thank you for your message! We\'ll get back to you soon.', 'success');
-                theForm.reset();
-            } else {
-                console.log('⚠️ Zappy: Backend returned error:', result.error);
-                zappyNotify(result.error || 'Failed to send message. Please try again.', 'error');
-            }
-        } catch (error) {
-            console.error('❌ Zappy: Failed to send to backend API:', error);
-            zappyNotify('Unable to send message right now. Please try again later.', 'error');
-        } finally {
-            if (submitBtn) {
-                if (submitBtn.tagName === 'INPUT') submitBtn.value = originalText;
-                else submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
-        }
-        }, true);
-
-        console.log('✅ Zappy: Contact form API integration initialized');
-    } // End of initContactFormIntegration
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initContactFormIntegration);
-    } else {
-        initContactFormIntegration();
-    }
-})();
-
-
-
-/* === NAVBAR SCROLL JS OVERRIDE START === */
-(function(){if(window._zappyNavScrollCleanup){window._zappyNavScrollCleanup();delete window._zappyNavScrollCleanup;}var nb=document.querySelector('nav.navbar,.navbar:not(.zappy-catalog-menu)');var cm=document.querySelector('.zappy-catalog-menu,#zappy-catalog-menu');function clr(){if(nb){nb.style.removeProperty('background');nb.style.removeProperty('background-color');nb.style.removeProperty('backdrop-filter');nb.style.removeProperty('-webkit-backdrop-filter');nb.style.removeProperty('box-shadow');nb.style.removeProperty('--frosted-text');nb.classList.remove('scrolled');}if(cm){cm.style.removeProperty('background');cm.style.removeProperty('background-color');cm.style.removeProperty('backdrop-filter');cm.style.removeProperty('-webkit-backdrop-filter');cm.classList.remove('scrolled');}}clr();window.addEventListener('scroll',clr,{passive:true});window._zappyNavScrollCleanup=function(){window.removeEventListener('scroll',clr);};})();
-/* === NAVBAR SCROLL JS OVERRIDE END === */
-
-
 
 
 /* ZAPPY_PUBLISHED_LIGHTBOX_RUNTIME */
